@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WebChat</title>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<style>
+*{
+  box-sizing:border-box;
+  font-family:"Segoe UI Emoji","Segoe UI",Roboto,Arial,sans-serif;
+}
+
+html, body{
+  height:100%;
+  margin:0;
+}
+
+body{
+  background:#0b141a;
+}
+
+/* FULLSCREEN APP */
+.app{
+  height:100vh;
+  width:100vw;
+  background:#efeae2;
+  display:flex;
+  flex-direction:column;
+}
+
+/* HEADER */
+.header{
+  padding:14px 16px;
+  background:#202c33;
+  color:#e9edef;
+  font-size:16px;
+  font-weight:600;
+  border-bottom:1px solid rgba(0,0,0,0.1);
+}
+
+/* CHAT AREA */
+.messages{
+  flex:1;
+  padding:14px 18px;
+  overflow-y:auto;
+  background:
+    linear-gradient(
+      rgba(229,221,213,0.92),
+      rgba(229,221,213,0.92)
+    ),
+    url("https://i.imgur.com/8IuucQZ.png");
+}
+
+/* MESSAGE BUBBLES */
+.left,
+.right{
+  max-width:72%;
+  width:fit-content;
+  padding:8px 12px;
+  margin:6px 0;
+  border-radius:8px;
+  font-size:15px;
+  line-height:1.45;
+  word-wrap:break-word;
+  white-space:pre-wrap;
+  animation:msgIn 0.18s ease-out;
+}
+
+/* RECEIVER */
+.left{
+  background:#ffffff;
+  border-top-left-radius:2px;
+}
+
+/* SENDER */
+.right{
+  background:#d9fdd3;
+  margin-left:auto;
+  border-top-right-radius:2px;
+}
+
+/* INPUT BAR */
+input{
+  padding:14px;
+  border:none;
+  outline:none;
+  font-size:15px;
+  background:#f0f2f5;
+}
+
+/* MESSAGE ANIMATION */
+@keyframes msgIn{
+  from{
+    opacity:0;
+    transform:translateY(8px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+/* MOBILE */
+/* =========================
+   MOBILE-FIRST RESPONSIVE
+========================= */
+
+/* Default: desktop already fine */
+
+/* Phones */
+@media (max-width: 600px){
+
+  /* Header compact */
+  .header{
+    padding:10px 12px;
+    font-size:15px;
+  }
+
+  /* Chat area spacing */
+  .messages{
+    padding:8px 10px;
+  }
+
+  /* Message bubbles */
+  .left,
+  .right{
+    max-width:90%;
+    font-size:14px;
+    padding:7px 10px;
+    margin:4px 0;
+  }
+
+  /* Input bar */
+  input{
+    padding:14px 12px;
+    font-size:15px;
+    position:sticky;
+    bottom:0;
+    border-top:1px solid #ddd;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 380px){
+
+  .header{
+    font-size:14px;
+  }
+
+  .left,
+  .right{
+    max-width:95%;
+    font-size:13.5px;
+  }
+
+  input{
+    font-size:14px;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<script>
+/* LOGIN GUARD */
+if(!localStorage.getItem("token")){
+  location="/";
+}
+</script>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <span id="chatWith"></span>
+  </div>
+
+  <!-- CHAT -->
+  <div class="messages" id="messages"></div>
+
+  <!-- INPUT -->
+  <input id="msg" placeholder="Type message & press Enter">
+
+</div>
+
+<script>
+/* =========================
+   BASIC SETUP
+========================= */
+const socket = io();
+const room = "pratham_adhya";
+const sender = localStorage.getItem("username");
+
+const messages = document.getElementById("messages");
+const input = document.getElementById("msg");
+const chatWithEl = document.getElementById("chatWith");
+
+/* =========================
+   SET HEADER NAME
+========================= */
+chatWithEl.innerText =
+  sender === "Pratham" ? "Adhya" : "Pratham";
+
+/* =========================
+   AUTO SCROLL
+========================= */
+function scrollToBottom(force=false){
+  const nearBottom =
+    messages.scrollHeight - messages.scrollTop - messages.clientHeight < 120;
+
+  if(force || nearBottom){
+    messages.scrollTop = messages.scrollHeight;
+  }
+}
+
+/* =========================
+   ADD MESSAGE
+========================= */
+function addMsg(msg, who){
+  const d = document.createElement("div");
+  d.className = who === sender ? "right" : "left";
+  d.innerText = msg;
+  messages.appendChild(d);
+  scrollToBottom();
+}
+
+/* =========================
+   LOAD OLD MESSAGES
+========================= */
+fetch(`/messages/${room}`)
+.then(r => r.json())
+.then(data => {
+  messages.innerHTML = "";
+  data.forEach(m => {
+    addMsg(m.message, m.sender);
+  });
+  scrollToBottom(true);
+});
+
+/* =========================
+   SOCKET JOIN
+========================= */
+socket.on("connect", () => {
+  socket.emit("join", { room });
+});
+
+/* =========================
+   RECEIVE MESSAGE
+========================= */
+socket.on("receive_message", data => {
+  if(data.sender !== sender){
+    addMsg(data.message, data.sender);
+  }
+});
+
+/* =========================
+   SEND MESSAGE
+========================= */
+input.addEventListener("keydown", e => {
+  if(e.key === "Enter" && input.value.trim()){
+    const text = input.value;
+
+    addMsg(text, sender);
+
+    socket.emit("send_message", {
+      room,
+      sender,
+      message: text
+    });
+
+    input.value = "";
+  }
+});
+</script>
+
+</body>
+</html>

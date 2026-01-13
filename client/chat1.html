@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WebChat</title>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<style>
+*{
+  box-sizing:border-box;
+  font-family:"Segoe UI", Roboto, Arial, sans-serif;
+}
+
+html, body{
+  height:100%;
+  margin:0;
+}
+
+body{
+  background:#0b141a;
+}
+
+/* FULLSCREEN APP */
+.app{
+  height:100vh;
+  width:100vw;
+  background:#efeae2;
+  display:flex;
+  flex-direction:column;
+}
+
+/* CHAT AREA */
+.messages{
+  flex:1;
+  padding:14px 18px;
+  overflow-y:auto;
+  background:
+    linear-gradient(
+      rgba(229,221,213,0.92),
+      rgba(229,221,213,0.92)
+    ),
+    url("https://i.imgur.com/8IuucQZ.png");
+}
+
+/* MESSAGE BUBBLES */
+.left,
+.right{
+  max-width:72%;
+  width: fit-content;        /* 🔥 KEY LINE */
+  padding:8px 12px;
+  margin:6px 0;
+  border-radius:8px;
+  font-size:15px;
+  line-height:1.45;
+  word-wrap:break-word;
+  white-space: pre-wrap;     /* long text wrap nicely */
+}
+
+
+/* RECEIVER */
+.left{
+  background:#ffffff;
+  border-top-left-radius:2px;
+}
+
+/* SENDER */
+.right{
+  background:#d9fdd3;
+  margin-left:auto;
+  border-top-right-radius:2px;
+}
+
+/* INPUT BAR */
+input{
+  padding:14px;
+  border:none;
+  outline:none;
+  font-size:15px;
+  background:#f0f2f5;
+}
+input, .left, .right{
+  font-family: "Segoe UI Emoji", "Segoe UI", Roboto, Arial, sans-serif;
+}
+@keyframes msgIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.left,
+.right{
+  animation: msgIn 0.18s ease-out;
+}
+.left{
+  animation: msgIn 0.18s ease-out;
+}
+
+.right{
+  animation: msgIn 0.18s ease-out;
+}
+
+/* MOBILE TUNING */
+@media (max-width:600px){
+  .messages{
+    padding:10px;
+  }
+
+  .left,
+  .right{
+    max-width:85%;
+    font-size:14px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<script>
+if(!localStorage.getItem("token")){
+  location="/"
+}
+</script>
+
+<div class="app">
+  <div class="messages" id="messages"></div>
+  <input id="msg" placeholder="Type message & press Enter">
+</div>
+
+<script>
+const socket = io();
+const room = "pratham_adhya";
+const sender = localStorage.getItem("username");
+
+const messages = document.getElementById("messages");
+const input = document.getElementById("msg");
+
+/* LOAD OLD MSGS */
+// fetch(`/messages/${room}`)
+// .then(r=>r.json())
+// .then(data=>{
+//   messages.innerHTML="";
+//   data.forEach(m=>{
+//     addMsg(m.message, m.sender)
+//   })
+//   messages.scrollTop = messages.scrollHeight
+// })
+fetch(`/messages/${room}`)
+.then(r=>r.json())
+.then(data=>{
+  messages.innerHTML="";
+  data.forEach(m=>{
+    addMsg(m.message, m.sender)
+  })
+  scrollToBottom(true); // 🔥 force scroll on load
+})
+
+/* JOIN */
+socket.on("connect",()=>{
+  socket.emit("join",{room})
+})
+
+/* RECEIVE */
+socket.on("receive_message",data=>{
+  if(data.sender!==sender){
+    addMsg(data.message,data.sender)
+  }
+})
+
+/* SEND */
+input.addEventListener("keydown",e=>{
+  if(e.key==="Enter" && input.value.trim()){
+    const text=input.value
+    addMsg(text,sender)
+
+    socket.emit("send_message",{
+      room,
+      sender,
+      message:text
+    })
+    input.value=""
+  }
+})
+//Auto scroll to bottom on new message
+function scrollToBottom(force = false){
+  const nearBottom =
+    messages.scrollHeight - messages.scrollTop - messages.clientHeight < 100;
+
+  if(force || nearBottom){
+    messages.scrollTop = messages.scrollHeight;
+  }
+}
+
+function addMsg(msg,who){
+  const d=document.createElement("div")
+  d.className=who===sender?"right":"left"
+  d.innerText=msg
+  messages.appendChild(d)
+  scrollToBottom();
+
+}
+</script>
+
+</body>
+</html>

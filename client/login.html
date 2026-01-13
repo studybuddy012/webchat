@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebChat Login</title>
+
+  <style>
+    *{
+      box-sizing:border-box;
+      font-family:"Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    body{
+      margin:0;
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background:linear-gradient(135deg,#0b141a,#111b21);
+    }
+
+    .login-box{
+      width:100%;
+      max-width:360px;
+      background:#ffffff;
+      padding:28px 26px;
+      border-radius:12px;
+      box-shadow:0 12px 30px rgba(0,0,0,0.35);
+      animation:fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn{
+      from{
+        opacity:0;
+        transform:translateY(12px);
+      }
+      to{
+        opacity:1;
+        transform:translateY(0);
+      }
+    }
+
+    .logo{
+      text-align:center;
+      font-size:28px;
+      font-weight:700;
+      color:#00a884;
+      margin-bottom:6px;
+    }
+
+    .subtitle{
+      text-align:center;
+      font-size:14px;
+      color:#667781;
+      margin-bottom:22px;
+    }
+
+    input{
+      width:100%;
+      padding:14px;
+      margin-bottom:14px;
+      border-radius:8px;
+      border:1px solid #d1d7db;
+      font-size:15px;
+      outline:none;
+      transition:0.2s;
+    }
+
+    input:focus{
+      border-color:#00a884;
+      box-shadow:0 0 0 2px rgba(0,168,132,0.15);
+    }
+
+    button{
+      width:100%;
+      padding:14px;
+      background:#00a884;
+      color:#ffffff;
+      border:none;
+      border-radius:8px;
+      font-size:16px;
+      font-weight:600;
+      cursor:pointer;
+      transition:0.2s;
+    }
+
+    button:hover{
+      background:#029e7c;
+    }
+
+    .hint{
+      margin-top:14px;
+      font-size:12px;
+      color:#667781;
+      text-align:center;
+    }
+
+    .error{
+      display:none;
+      background:#ffecec;
+      color:#b00020;
+      padding:10px;
+      border-radius:6px;
+      font-size:13px;
+      margin-bottom:12px;
+      text-align:center;
+    }
+
+    @media(max-width:420px){
+      .login-box{
+        margin:0 14px;
+      }
+    }
+    .password-box{
+  position:relative;
+}
+
+.password-box input{
+  padding-right:44px; /* eye ke liye space */
+}
+
+.toggle{
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  cursor:pointer;
+  font-size:18px;
+  user-select:none;
+  opacity:0.7;
+}
+
+.toggle:hover{
+  opacity:1;
+}
+
+  </style>
+</head>
+
+<body>
+
+<div class="login-box">
+  <div class="logo">WebChat</div>
+  <div class="subtitle">Login or auto-register to continue</div>
+
+  <div class="error" id="err">Invalid username or password</div>
+
+  <input id="u" placeholder="Username">
+  <div class="password-box">
+  <input id="p" type="password" placeholder="Password">
+  <span class="toggle" onclick="togglePassword()">👁️</span>
+</div>
+
+
+  <button onclick="login()">Login</button>
+
+  <div class="hint">
+    First time? Account will be created automatically.
+  </div>
+</div>
+
+<script>
+  function togglePassword(){
+  const p = document.getElementById("p");
+  const eye = document.querySelector(".toggle");
+
+  if(p.type === "password"){
+    p.type = "text";
+    eye.innerText = "🙈";
+  }else{
+    p.type = "password";
+    eye.innerText = "👁️";
+  }
+}
+
+function login(){
+  const err = document.getElementById("err");
+  err.style.display = "none";
+
+  fetch("/login",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({
+      username: u.value.trim(),
+      password: p.value
+    })
+  })
+  .then(r=>{
+    if(!r.ok){
+      throw new Error("Invalid username or password");
+    }
+    return r.json();
+  })
+  .then(d=>{
+    localStorage.setItem("token", d.token);
+    localStorage.setItem("username", d.username);
+    location="/chat";
+  })
+  .catch(()=>{
+    err.style.display = "block";
+  });
+}
+</script>
+
+</body>
+</html>

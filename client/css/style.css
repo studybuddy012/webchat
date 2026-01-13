@@ -1,0 +1,6 @@
+body{margin:0;font-family:Arial}
+.app{height:100vh;display:flex;flex-direction:column}
+.messages{flex:1;padding:10px;background:#efeae2;overflow:auto}
+.left{background:#fff;padding:8px;margin:5px;width:fit-content}
+.right{background:#d9fdd3;padding:8px;margin:5px;margin-left:auto;width:fit-content}
+input{padding:10px;border:none}
