@@ -1,164 +1,139 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>WebChat</title>
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <title>WebChat</title>
 
-<style>
-*{
-  box-sizing:border-box;
-  font-family:"Segoe UI Emoji","Segoe UI",Roboto,Arial,sans-serif;
-}
+  <!-- 🔥 MOBILE RESPONSIVE ROOT -->
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-html, body{
-  height:100%;
-  margin:0;
-}
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
-body{
-  background:#0b141a;
-}
+  <style>
+    /* ===== GLOBAL RESET ===== */
+    html{
+      font-size:16px;
+      -webkit-text-size-adjust:100%;
+      text-size-adjust:100%;
+    }
 
-/* FULLSCREEN APP */
-.app{
-  height:100vh;
-  width:100vw;
-  background:#efeae2;
-  display:flex;
-  flex-direction:column;
-}
+    *{
+      box-sizing:border-box;
+      font-family:"Segoe UI Emoji","Segoe UI",Roboto,Arial,sans-serif;
+    }
 
-/* HEADER */
-.header{
-  padding:14px 16px;
-  background:#202c33;
-  color:#e9edef;
-  font-size:16px;
-  font-weight:600;
-  border-bottom:1px solid rgba(0,0,0,0.1);
-}
+    html, body{
+      margin:0;
+      padding:0;
+      height:100%;
+      background:#0b141a;
+      overflow-x:hidden;
+    }
 
-/* CHAT AREA */
-.messages{
-  flex:1;
-  padding:14px 18px;
-  overflow-y:auto;
-  background:
-    linear-gradient(
-      rgba(229,221,213,0.92),
-      rgba(229,221,213,0.92)
-    ),
-    url("https://i.imgur.com/8IuucQZ.png");
-}
+    /* ===== APP ===== */
+    .app{
+      height:100svh;
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      background:#efeae2;
+    }
 
-/* MESSAGE BUBBLES */
-.left,
-.right{
-  max-width:72%;
-  width:fit-content;
-  padding:8px 12px;
-  margin:6px 0;
-  border-radius:8px;
-  font-size:15px;
-  line-height:1.45;
-  word-wrap:break-word;
-  white-space:pre-wrap;
-  animation:msgIn 0.18s ease-out;
-}
+    /* ===== HEADER ===== */
+    .header{
+      flex-shrink:0;
+      padding:14px 16px;
+      background:#202c33;
+      color:#e9edef;
+      font-size:18px;
+      font-weight:600;
+    }
 
-/* RECEIVER */
-.left{
-  background:#ffffff;
-  border-top-left-radius:2px;
-}
+    /* ===== MESSAGES ===== */
+    .messages{
+      flex:1 1 auto;
+      padding:14px 16px;
+      overflow-y:auto;
+      overflow-x:hidden;
+      -webkit-overflow-scrolling:touch;
+      background:
+        linear-gradient(rgba(229,221,213,0.92), rgba(229,221,213,0.92)),
+        url("https://i.imgur.com/8IuucQZ.png");
+      background-repeat:repeat;
+      background-size:auto;
+    }
 
-/* SENDER */
-.right{
-  background:#d9fdd3;
-  margin-left:auto;
-  border-top-right-radius:2px;
-}
+    /* ===== MESSAGE BUBBLES ===== */
+    .left,
+    .right{
+      max-width:85%;
+      width:fit-content;
+      padding:10px 14px;
+      margin:6px 0;
+      border-radius:8px;
+      font-size:16px;
+      line-height:1.55;
+      white-space:pre-wrap;
+      animation:msgIn 0.15s ease-out;
+    }
 
-/* INPUT BAR */
-input{
-  padding:14px;
-  border:none;
-  outline:none;
-  font-size:15px;
-  background:#f0f2f5;
-}
+    .left{ background:#ffffff; }
+    .right{ background:#d9fdd3; margin-left:auto; }
 
-/* MESSAGE ANIMATION */
-@keyframes msgIn{
-  from{
-    opacity:0;
-    transform:translateY(8px);
-  }
-  to{
-    opacity:1;
-    transform:translateY(0);
-  }
-}
+    /* ===== INPUT BAR ===== */
+    .input-bar{
+      flex-shrink:0;
+      padding:10px;
+      background:#f0f2f5;
+      border-top:1px solid #ddd;
+      display:flex;
+      gap:8px;
+      align-items:flex-end;
+    }
 
-/* MOBILE */
-/* =========================
-   MOBILE-FIRST RESPONSIVE
-========================= */
+    .input-bar textarea{
+      flex:1;
+      resize:none;
+      padding:12px 14px;
+      font-size:16px;
+      border:none;
+      border-radius:18px;
+      outline:none;
+      max-height:120px;
+      overflow-y:auto;
+    }
 
-/* Default: desktop already fine */
+    /* SEND BUTTON (hidden on desktop) */
+    #sendBtn{
+      display:none;
+      padding:12px 14px;
+      font-size:18px;
+      border:none;
+      border-radius:50%;
+      background:#00a884;
+      color:white;
+      cursor:pointer;
+    }
 
-/* Phones */
-@media (max-width: 600px){
+    /* SHOW SEND BUTTON ON PHONE */
+    @media (max-width:600px){
+      #sendBtn{
+        display:block;
+      }
+    }
 
-  /* Header compact */
-  .header{
-    padding:10px 12px;
-    font-size:15px;
-  }
+    /* ===== ANIMATION ===== */
+    @keyframes msgIn{
+      from{ opacity:0; transform:translateY(6px); }
+      to{ opacity:1; transform:translateY(0); }
+    }
 
-  /* Chat area spacing */
-  .messages{
-    padding:8px 10px;
-  }
-
-  /* Message bubbles */
-  .left,
-  .right{
-    max-width:90%;
-    font-size:14px;
-    padding:7px 10px;
-    margin:4px 0;
-  }
-
-  /* Input bar */
-  input{
-    padding:14px 12px;
-    font-size:15px;
-    position:sticky;
-    bottom:0;
-    border-top:1px solid #ddd;
-  }
-}
-
-/* Very small phones */
-@media (max-width: 380px){
-
-  .header{
-    font-size:14px;
-  }
-
-  .left,
-  .right{
-    max-width:95%;
-    font-size:13.5px;
-  }
-
-  input{
-    font-size:14px;
-  }
-}
-
-</style>
+    /* VERY SMALL PHONES */
+    @media(max-width:380px){
+      .header{ font-size:17px; }
+      .left,.right{ font-size:15.5px; }
+    }
+  </style>
 </head>
 
 <body>
@@ -181,43 +156,34 @@ if(!localStorage.getItem("token")){
   <div class="messages" id="messages"></div>
 
   <!-- INPUT -->
-  <input id="msg" placeholder="Type message & press Enter">
+  <div class="input-bar">
+    <textarea id="msg" rows="1" placeholder="Type message"></textarea>
+    <button id="sendBtn">➤</button>
+  </div>
 
 </div>
 
 <script>
-/* =========================
-   BASIC SETUP
-========================= */
+/* ===== SOCKET SETUP ===== */
 const socket = io();
 const room = "pratham_adhya";
 const sender = localStorage.getItem("username");
 
 const messages = document.getElementById("messages");
 const input = document.getElementById("msg");
+const sendBtn = document.getElementById("sendBtn");
 const chatWithEl = document.getElementById("chatWith");
 
-/* =========================
-   SET HEADER NAME
-========================= */
+/* HEADER NAME */
 chatWithEl.innerText =
   sender === "Pratham" ? "Adhya" : "Pratham";
 
-/* =========================
-   AUTO SCROLL
-========================= */
-function scrollToBottom(force=false){
-  const nearBottom =
-    messages.scrollHeight - messages.scrollTop - messages.clientHeight < 120;
-
-  if(force || nearBottom){
-    messages.scrollTop = messages.scrollHeight;
-  }
+/* AUTO SCROLL */
+function scrollToBottom(){
+  messages.scrollTop = messages.scrollHeight;
 }
 
-/* =========================
-   ADD MESSAGE
-========================= */
+/* ADD MESSAGE */
 function addMsg(msg, who){
   const d = document.createElement("div");
   d.className = who === sender ? "right" : "left";
@@ -226,53 +192,53 @@ function addMsg(msg, who){
   scrollToBottom();
 }
 
-/* =========================
-   LOAD OLD MESSAGES
-========================= */
+/* SEND MESSAGE */
+function sendMessage(){
+  if(!input.value.trim()) return;
+
+  addMsg(input.value, sender);
+
+  socket.emit("send_message", {
+    room,
+    sender,
+    message: input.value
+  });
+
+  input.value = "";
+}
+
+/* LOAD OLD MESSAGES */
 fetch(`/messages/${room}`)
 .then(r => r.json())
 .then(data => {
   messages.innerHTML = "";
-  data.forEach(m => {
-    addMsg(m.message, m.sender);
-  });
-  scrollToBottom(true);
+  data.forEach(m => addMsg(m.message, m.sender));
+  scrollToBottom();
 });
 
-/* =========================
-   SOCKET JOIN
-========================= */
+/* JOIN ROOM */
 socket.on("connect", () => {
   socket.emit("join", { room });
 });
 
-/* =========================
-   RECEIVE MESSAGE
-========================= */
+/* RECEIVE MESSAGE */
 socket.on("receive_message", data => {
   if(data.sender !== sender){
     addMsg(data.message, data.sender);
   }
 });
 
-/* =========================
-   SEND MESSAGE
-========================= */
+/* KEYBOARD BEHAVIOR */
 input.addEventListener("keydown", e => {
-  if(e.key === "Enter" && input.value.trim()){
-    const text = input.value;
-
-    addMsg(text, sender);
-
-    socket.emit("send_message", {
-      room,
-      sender,
-      message: text
-    });
-
-    input.value = "";
+  /* DESKTOP: Enter = Send */
+  if(window.innerWidth > 600 && e.key === "Enter"){
+    e.preventDefault();
+    sendMessage();
   }
 });
+
+/* MOBILE: SEND BUTTON */
+sendBtn.addEventListener("click", sendMessage);
 </script>
 
 </body>
