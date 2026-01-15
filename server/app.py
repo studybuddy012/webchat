@@ -23,14 +23,12 @@ def login_page():
     
 @app.route("/show-db")
 def show_db():
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM users")
-    
-    columns = [desc[0] for desc in cur.description]
-    rows = cur.fetchall()
+    db = get_db()   # ✅ yahi sahi connection hai
 
-    data = [dict(zip(columns, row)) for row in rows]
-    return data
+    rows = db.execute("SELECT * FROM users").fetchall()
+
+    data = [dict(row) for row in rows]
+    return jsonify(data)
 
 @app.route("/chat")
 def chat_page():
@@ -48,5 +46,6 @@ def get_messages(room):
 if __name__ == "__main__":
     init_db()
     socketio.run(app, host="0.0.0.0", port=10000)
+
 
 
