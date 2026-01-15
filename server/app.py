@@ -20,6 +20,17 @@ app.register_blueprint(auth)
 @app.route("/")
 def login_page():
     return send_from_directory(CLIENT, "login.html")
+    
+@app.route("/show-db")
+def show_db():
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM users")
+    
+    columns = [desc[0] for desc in cur.description]
+    rows = cur.fetchall()
+
+    data = [dict(zip(columns, row)) for row in rows]
+    return data
 
 @app.route("/chat")
 def chat_page():
@@ -37,4 +48,5 @@ def get_messages(room):
 if __name__ == "__main__":
     init_db()
     socketio.run(app, host="0.0.0.0", port=10000)
+
 
